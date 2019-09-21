@@ -1,211 +1,190 @@
-/* eslint-disable  func-names */
-/* eslint-disable  no-console */
-
 const Alexa = require('ask-sdk');
-const dbHelper = require('./helpers/dbHelper');
+const db = require('./helpers/db');
 const GENERAL_REPROMPT = "What would you like to do?";
-const dynamoDBTableName = "dynamodb-starter";
+const dynamoDBTableName = "seasonalVegetables";
+
 const LaunchRequestHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
-  },
-  handle(handlerInput) {
-    const speechText = 'Hello there. What is your favourite movie? You can say add moviename to add your favourite movie or say list my movies to get your favourite movies.';
-    const repromptText = 'What would you like to do? You can say HELP to get available options';
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
+    },
+    handle(handlerInput) {
+        const speechText = `Welcome to Seasonal Vegetables, Say something like 'What is in season now' or 'What is in season in summer',
+        to hear what will be in season for that time period. Or ask 'When will apples be in season' to find out the best time to buy.`
+        const repromptText = 'What would you like to do? You can say HELP to get available options';
 
-    return handlerInput.responseBuilder
-      .speak(speechText)
-      .reprompt(repromptText)
-      .getResponse();
-  },
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .withSimpleCard("Seasonal Vegetables", speechText)
+            .reprompt(repromptText)
+            .getResponse();
+    },
 };
 
-const InProgressAddMovieIntentHandler = {
-  canHandle(handlerInput) {
-    const request = handlerInput.requestEnvelope.request;
-    return request.type === 'IntentRequest' &&
-      request.intent.name === 'AddMovieIntent' &&
-      request.dialogState !== 'COMPLETED';
-  },
-  handle(handlerInput) {
-    const currentIntent = handlerInput.requestEnvelope.request.intent;
-    return handlerInput.responseBuilder
-      .addDelegateDirective(currentIntent)
-      .getResponse();
-  }
-}
-
-const AddMovieIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === 'AddMovieIntent';
-  },
-  async handle(handlerInput) {
-    const {responseBuilder } = handlerInput;
-    const userID = handlerInput.requestEnvelope.context.System.user.userId; 
-    const slots = handlerInput.requestEnvelope.request.intent.slots;
-    const movieName = slots.MovieName.value;
-    return dbHelper.addMovie(movieName, userID)
-      .then((data) => {
-        const speechText = `You have added movie ${movieName}. You can say add to add another one or remove to remove movie`;
-        return responseBuilder
-          .speak(speechText)
-          .reprompt(GENERAL_REPROMPT)
-          .getResponse();
-      })
-      .catch((err) => {
-        console.log("Error occured while saving movie", err);
-        const speechText = "we cannot save your movie right now. Try again!"
-        return responseBuilder
-          .speak(speechText)
-          .getResponse();
-      })
-  },
-};
-
-const GetMoviesIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === 'GetMoviesIntent';
-  },
-  async handle(handlerInput) {
-    const {responseBuilder } = handlerInput;
-    const userID = handlerInput.requestEnvelope.context.System.user.userId; 
-    return dbHelper.getMovies(userID)
-      .then((data) => {
-        var speechText = "Your movies are "
-        if (data.length == 0) {
-          speechText = "You do not have any favourite movie yet, add movie by saving add moviename "
-        } else {
-          speechText += data.map(e => e.movieTitle).join(", ")
+const GetCurrentIntentHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
+            handlerInput.requestEnvelope.request.intent.name === 'GetCurrentIntent';
+    },
+    async handle(handlerInput) {
+        const { responseBuilder } = handlerInput;
+        const slots = handlerInput.requestEnvelope.request.intent.slots;
+        let monthSlotValue = slots.month.value;
+        let seasonSlotValue = slots.season.value;
+        let typeToQuery = slots.fruitorvegetable.value;
+        if (typeToQuery !== undefined) {
+            typeToQuery = slots.fruitorvegetable.resolutions.resolutionsPerAuthority[0].values[0].value.name;
         }
-        return responseBuilder
-          .speak(speechText)
-          .reprompt(GENERAL_REPROMPT)
-          .getResponse();
-      })
-      .catch((err) => {
-        const speechText = "we cannot get your movie right now. Try again!"
-        return responseBuilder
-          .speak(speechText)
-          .getResponse();
-      })
-  }
-}
+        return db.getCurrent(monthSlotValue,typeToQuery,seasonSlotValue)
+            .then((data) => {
+                let speechText = "In season are ";
+                if (data.length == 0) {
+                    speechText = "I can't find anything. Try again"
+                } else {
+                    let listToRead = getTenThingsFromList(data);
+                    console.log(listToRead);
+                    speechText += data.map(e => {
+                        return  `${e.userId} `
+                    }).join(", ")
+                }
 
-const InProgressRemoveMovieIntentHandler = {
-  canHandle(handlerInput) {
-    const request = handlerInput.requestEnvelope.request;
-    return request.type === 'IntentRequest' &&
-      request.intent.name === 'RemoveMovieIntent' &&
-      request.dialogState !== 'COMPLETED';
-  },
-  handle(handlerInput) {
-    const currentIntent = handlerInput.requestEnvelope.request.intent;
-    return handlerInput.responseBuilder
-      .addDelegateDirective(currentIntent)
-      .getResponse();
-  }
-}
+                return responseBuilder
+                    .speak(speechText)
+                    .withSimpleCard("Seasonal Vegetables", speechText)
+                    .reprompt(GENERAL_REPROMPT)
+                    .getResponse();
+            })
+            .catch((err) => {
+                console.error("Unable to get current. Error JSON:", JSON.stringify(err, null, 2));
+                const speechText = "We cannot get anything right now. Try again!"
+                return responseBuilder
+                    .speak(speechText)
+                    .getResponse();
+            })
+    }
+};
 
-const RemoveMovieIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === 'RemoveMovieIntent';
-  }, 
-  handle(handlerInput) {
-    const {responseBuilder } = handlerInput;
-    const userID = handlerInput.requestEnvelope.context.System.user.userId; 
-    const slots = handlerInput.requestEnvelope.request.intent.slots;
-    const movieName = slots.MovieName.value;
-    return dbHelper.removeMovie(movieName, userID)
-      .then((data) => {
-        const speechText = `You have removed movie with name ${movieName}, you can add another one by saying add`
-        return responseBuilder
-          .speak(speechText)
-          .reprompt(GENERAL_REPROMPT)
-          .getResponse();
-      })
-      .catch((err) => {
-        const speechText = `You do not have movie with name ${movieName}, you can add it by saying add`
-        return responseBuilder
-          .speak(speechText)
-          .reprompt(GENERAL_REPROMPT)
-          .getResponse();
-      })
-  }
-}
+// Get say only 10 things at a time
+const getTenThingsFromList = (data) => {
+    let fullList = data;
+    let size = 10;
+    let listOfVeg = data.slice(0, size).map(i => {
+        return  `${i.userId}`
+    }).join(", ")
+
+    return listOfVeg;
+};
+
+//Say how many things are in the list first
+
+//Add in some visuals to make the app more fun
+
+const GetByNameSeasonIntentHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
+            handlerInput.requestEnvelope.request.intent.name === 'GetByNameSeasonIntent';
+    },
+    async handle(handlerInput) {
+        const { responseBuilder } = handlerInput;
+        const slots = handlerInput.requestEnvelope.request.intent.slots;
+        let name = slots.vegetableName.value;
+        return db.getByNameSeason(name)
+            .then((data) => {
+                let speechText =  name + " are in season during ";
+                if (data.length == 0) {
+                    speechText = "I'm sorry, I don't know when that is in season yet."
+                } else {
+                    speechText += data.map(e => {
+                        return  `${e.season} `
+                    }).join(", ")
+                }
+
+                return responseBuilder
+                    .speak(speechText)
+                    .withSimpleCard("Seasonal Vegetables", speechText)
+                    .reprompt(GENERAL_REPROMPT)
+                    .getResponse();
+            })
+            .catch((err) => {
+                console.error("Unable to get current. Error JSON:", JSON.stringify(err, null, 2));
+                const speechText = "We cannot get anything right now. Try again!"
+                return responseBuilder
+                    .speak(speechText)
+                    .getResponse();
+            })
+    }
+};
 
 const HelpIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.HelpIntent';
-  },
-  handle(handlerInput) {
-    const speechText = 'You can introduce yourself by telling me your name';
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
+            handlerInput.requestEnvelope.request.intent.name === 'AMAZON.HelpIntent';
+    },
+    handle(handlerInput) {
+        const speechText = `You can ask what is in season now, what is in season in a specific time of year, or specify a fruit or vegetable and find out when they are in season`;
 
-    return handlerInput.responseBuilder
-      .speak(speechText)
-      .reprompt(speechText)
-      .getResponse();
-  },
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .withSimpleCard("Seasonal Vegetables", speechText)
+            .reprompt(speechText)
+            .getResponse();
+    },
 };
 
 const CancelAndStopIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && (handlerInput.requestEnvelope.request.intent.name === 'AMAZON.CancelIntent'
-        || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.StopIntent');
-  },
-  handle(handlerInput) {
-    const speechText = 'Goodbye!';
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest' &&
+            (handlerInput.requestEnvelope.request.intent.name === 'AMAZON.CancelIntent' ||
+                handlerInput.requestEnvelope.request.intent.name === 'AMAZON.StopIntent');
+    },
+    handle(handlerInput) {
+        const speechText = 'Goodbye!';
 
-    return handlerInput.responseBuilder
-      .speak(speechText)
-      .getResponse();
-  },
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .getResponse();
+    },
 };
 
 const SessionEndedRequestHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'SessionEndedRequest';
-  },
-  handle(handlerInput) {
-    console.log(`Session ended with reason: ${handlerInput.requestEnvelope.request.reason}`);
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'SessionEndedRequest';
+    },
+    handle(handlerInput) {
+        console.log(`Session ended with reason: ${handlerInput.requestEnvelope.request.reason}`);
 
-    return handlerInput.responseBuilder.getResponse();
-  },
+        return handlerInput.responseBuilder
+            .getResponse();
+    },
 };
 
 const ErrorHandler = {
-  canHandle() {
-    return true;
-  },
-  handle(handlerInput, error) {
-    console.log(`Error handled: ${error.message}`);
+    canHandle() {
+        return true;
+    },
+    handle(handlerInput, error) {
+        console.log(`Error handled: ${error.message}`);
+        const speechText = 'Sorry, I didn\'t understand the command. Please say again.'
 
-    return handlerInput.responseBuilder
-      .speak('Sorry, I can\'t understand the command. Please say again.')
-      .reprompt('Sorry, I can\'t understand the command. Please say again.')
-      .getResponse();
-  },
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .withSimpleCard("Seasonal Vegetables", speechText)
+            .reprompt(speechText)
+            .getResponse();
+    },
 };
 
 const skillBuilder = Alexa.SkillBuilders.standard();
 
 exports.handler = skillBuilder
-  .addRequestHandlers(
-    LaunchRequestHandler,
-    InProgressAddMovieIntentHandler,
-    AddMovieIntentHandler,
-    GetMoviesIntentHandler,
-    InProgressRemoveMovieIntentHandler,
-    RemoveMovieIntentHandler,
-    HelpIntentHandler,
-    CancelAndStopIntentHandler,
-    SessionEndedRequestHandler
-  )
-  .addErrorHandlers(ErrorHandler)
-  .withTableName(dynamoDBTableName)
-  .withAutoCreateTable(true)
-  .lambda();
+    .addRequestHandlers(
+        LaunchRequestHandler,
+        GetByNameSeasonIntentHandler,
+        GetCurrentIntentHandler,
+        HelpIntentHandler,
+        CancelAndStopIntentHandler,
+        SessionEndedRequestHandler
+    )
+    .addErrorHandlers(ErrorHandler)
+    .withTableName(dynamoDBTableName)
+    .withAutoCreateTable(true)
+    .lambda();

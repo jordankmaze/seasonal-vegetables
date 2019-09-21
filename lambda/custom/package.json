@@ -1,14 +1,14 @@
 {
-  "name": "dynamodb-starter",
+  "name": "seasonal-vegetables-v1",
   "version": "1.0.0",
-  "description": "DynamoDB Starter Alexa Template",
+  "description": "Seasonal Vegetables Alexa Skill",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Dabble Lab",
+  "author": "Jordan Maze",
   "license": "ISC",
   "dependencies": {
-    "ask-sdk": "^2.0.10"
+    "ask-sdk": "^2.7.0"
   }
 }

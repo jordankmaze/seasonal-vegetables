@@ -1,2 +1,8 @@
 _tmp/
 .DS_Store
+skill.json
+.ask/
+node_modules/
+hooks/
+package-lock.json
+Vegetables.csv

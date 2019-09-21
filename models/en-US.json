@@ -1,7 +1,7 @@
 {
     "interactionModel": {
         "languageModel": {
-            "invocationName": "dynamodb starter",
+            "invocationName": "seasonal vegetables",
             "intents": [
                 {
                     "name": "AMAZON.CancelIntent",
@@ -16,102 +16,569 @@
                     "samples": []
                 },
                 {
-                    "name": "AddMovieIntent",
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "GetCurrentIntent",
                     "slots": [
                         {
-                            "name": "MovieName",
-                            "type": "AMAZON.Movie",
-                            "samples": [
-                                "{MovieName}"
-                            ]
+                            "name": "month",
+                            "type": "MY_MONTHS"
+                        },
+                        {
+                            "name": "season",
+                            "type": "MY_SEASONS"
+                        },
+                        {
+                            "name": "fruitorvegetable",
+                            "type": "IS_VEGETABLE"
                         }
                     ],
                     "samples": [
-                        "add {MovieName}",
-                        "add"
+                        "what is in season for {month}",
+                        "what is in season for {season}",
+                        "what is in season in {season}",
+                        "what is in season now",
+                        "what should I look for in {season}",
+                        "what is in season in {month}",
+                        "what should I look for in {month}",
+                        "what {fruitorvegetable} should I get in {season}",
+                        "what {fruitorvegetable} should I get in {month}",
+                        "what {fruitorvegetable} should I get now",
+                        "what {fruitorvegetable} are available in {season}",
+                        "what {fruitorvegetable} are available in {month}",
+                        "what {fruitorvegetable} are in season in {season}",
+                        "what {fruitorvegetable} are in season in {month}",
+                        "what {fruitorvegetable} is in season in {season}",
+                        "what {fruitorvegetable} is in season in {month}",
+                        "what {fruitorvegetable} is in season right now",
+                        "what {fruitorvegetable} are in season right now",
+                        "what {fruitorvegetable} are available right now"
                     ]
                 },
                 {
-                    "name": "GetMoviesIntent",
-                    "slots": [],
-                    "samples": [
-                        "get my movies"
-                    ]
-                },
-                {
-                    "name": "RemoveMovieIntent",
+                    "name": "GetByNameSeasonIntent",
                     "slots": [
                         {
-                            "name": "MovieName",
-                            "type": "AMAZON.Movie",
-                            "samples": [
-                                "{MovieName}"
-                            ]
+                            "name": "vegetableName",
+                            "type": "VEGETABLE_NAME"
                         }
                     ],
                     "samples": [
-                        "remove {MovieName}",
-                        "remove"
+                        "When can I get the best {vegetableName}",
+                        "When should I get {vegetableName}",
+                        "When can I get {vegetableName} ",
+                        "What season are {vegetableName} in season",
+                        "When are {vegetableName} in season"
                     ]
                 }
             ],
-            "types": []
-        },
-        "dialog": {
-            "intents": [
+            "types": [
                 {
-                    "name": "AddMovieIntent",
-                    "confirmationRequired": false,
-                    "prompts": {},
-                    "slots": [
+                    "name": "MY_MONTHS",
+                    "values": [
                         {
-                            "name": "MovieName",
-                            "type": "AMAZON.Movie",
-                            "confirmationRequired": false,
-                            "elicitationRequired": true,
-                            "prompts": {
-                                "elicitation": "Elicit.Slot.932310416052.1004645578092"
+                            "name": {
+                                "value": "December"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "November"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "October"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "September"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "August"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "July"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "June"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "May"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "April"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "March"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "February "
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "January"
                             }
                         }
                     ]
                 },
                 {
-                    "name": "RemoveMovieIntent",
-                    "confirmationRequired": false,
-                    "prompts": {},
-                    "slots": [
+                    "name": "MY_SEASONS",
+                    "values": [
                         {
-                            "name": "MovieName",
-                            "type": "AMAZON.Movie",
-                            "confirmationRequired": false,
-                            "elicitationRequired": true,
-                            "prompts": {
-                                "elicitation": "Elicit.Slot.1034415917954.788060345760"
+                            "name": {
+                                "value": "Fall"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Summer"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Spring"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Winter"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "IS_VEGETABLE",
+                    "values": [
+                        {
+                            "id": "fruit",
+                            "name": {
+                                "value": "fruit",
+                                "synonyms": [
+                                    "fruits"
+                                ]
+                            }
+                        },
+                        {
+                            "id": "vegetable",
+                            "name": {
+                                "value": "vegetable",
+                                "synonyms": [
+                                    "vegetables"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "VEGETABLE_NAME",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "Fennel"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Sunchoke"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Lettuce"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Beans"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Peaches"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Kiwi"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Onions"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Cantaloupe"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Chard"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Garlic"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Apricots"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Green Beans"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Tangelos"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Pomegranate"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Parsnips"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Melons"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Blackberries"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Peas"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Oranges"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Escarole"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Artichoke"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Brussel Sprouts"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Raspberries"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Bok Choy"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Turnip"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Strawberries"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Grapes"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Pears"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Potatoes"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Tangerine"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Shallots"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Rutabaga"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Tomatoes"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Raddichio"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Squash"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Spinach"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Lemon"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Pumpkin"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Blueberries"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Rhubarb"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Fava Beans"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Celery Root"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Yams"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Lettuce Greens"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Eggplant"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Avacados"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Peppers"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Zucchini"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Radishes"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Broccoli"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Mushrooms"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Pinapple"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Apples"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Asparagus"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Sweet Potatoes"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Corn"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Cucumber"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Collard Greens"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Plums"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Cherries"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Green Onions"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Scallions"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Winter Squash"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Chicory"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Herbs"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Swiss Chard"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Watercress"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Grapefruit"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Chiles"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Cabbage"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Chives"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Kale"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Leeks"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Beets"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Cauliflower"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Carrots"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Limes"
                             }
                         }
                     ]
                 }
             ]
-        },
-        "prompts": [
-            {
-                "id": "Elicit.Slot.932310416052.1004645578092",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "Which movie would you like to add "
-                    }
-                ]
-            },
-            {
-                "id": "Elicit.Slot.1034415917954.788060345760",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "Which movie would you like to remove "
-                    }
-                ]
-            }
-        ]
+        }
     }
 }
