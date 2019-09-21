@@ -1,7 +1,7 @@
 _tmp/
 .DS_Store
-skill.json
 .ask/
-lambda/custom/node_modules/*
+lambda/custom/node_modules/
 hooks/
 Vegetables.csv
+skill.json
